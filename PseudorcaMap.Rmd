@@ -1,0 +1,123 @@
+---
+title: "Pseudorca Map"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+# Load Packages
+```{r message=F, warning=F, tidy=TRUE}
+library(geoR)
+library(fields)
+library(sp)
+library(maptools)
+library(rgdal)
+library(classInt)
+library(lattice)
+library(zoo)
+library(ggplot2)
+library(ggrepel)
+library(Rmisc)
+library(MuMIn)
+library(matrixStats)
+```
+
+## Get Hawaii Polygon
+
+Download the data from the US Census Bureau Tiger/Line Shapefiles web interface: https://www.census.gov/geo/maps-data/data/tiger-line.html Select year = 2016 (or the most recent year available) and Layertype = States (and equivalent).  Metadata are also available in the .xml files included in the download. Technical details on the files in general are available in the technical documentation on the website.
+ Download and extract the shapefile to the working directory
+ Load the file.  
+ Only need the .shp file for R plotting.
+
+```{r}
+
+#us<-readShapePoly("C:\\Users\\yvers\\Documents\\sperm whale\\yb_maps\\tl_2016_us_state.shp")
+#us<-readShapePoly("E:\\PHD\\sperm whales\\yb_maps\\tl_2016_us_state.shp")
+us<-readShapePoly("C:\\Users\\Yvonne\\Documents\\PHD\\CHP2&3-Sperm\\code\\yb_maps\\shp\\tl_2016_us_state.shp")
+hawaii<-subset(us,NAME=="Hawaii")
+hawaiiMap<-fortify(hawaii) #converts shape file in a readable format for ggplot
+```
+
+# Pseudorca map
+## Load and clean data
+```{r}
+psdf = read.csv("C:\\Users\\Yvonne\\OneDrive\\PHD\\CHP1-FKW\\data\\Pseudorca_AcLocations.csv")
+levels(psdf$population)[3] <- 'Pelagic'
+levels(psdf$population)[2] <- 'NWHI'
+
+# ## recenter coordinates
+psdf$longitude2 = ifelse(psdf$longitude > 0, psdf$longitude*-1, psdf$longitude)
+
+psdf$population = with(psdf, factor(population, levels = rev(levels(population))))
+
+
+```
+
+```{r tidy=TRUE}
+#png(file = "C:\\Users\\Yvonne\\OneDrive\\PHD\\CHP1-FKW\\data\\PseudMap.png", width = 9, height = 5, res = 200, units = "in", bg="transparent")
+
+
+Pc = ggplot(data = psdf, aes(x = longitude2, y = latitude)) +  
+  theme_bw() +
+  ## remove the legend title, x and y labels, and gridlines
+  theme(
+  legend.title = element_blank(),
+  legend.key = element_blank(),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.grid = element_blank(),
+  legend.text = element_text(size=12),
+  legend.position = c(0.1,0.25),
+  plot.margin = unit(c(1,1,1,1), "cm"),
+  legend.background = element_rect(fill = NA),
+  panel.background = element_rect(fill = "transparent"),
+  plot.background = element_rect(fill = "transparent")
+
+  
+  ) +
+  
+  scale_x_continuous(
+  breaks = seq(-180, -150, 10),
+  labels = c(expression('180' *  ~ degree * W), 
+             expression('170' *  ~ degree * W), 
+             expression('160' *  ~ degree * W), 
+             expression('150' *  ~ degree * W))
+  ) +
+  
+  scale_y_continuous(
+  limits = c(15,32),
+  breaks = seq(15, 30, 5),
+  labels = c(expression('15' *  ~ degree * N), 
+             expression('20' *  ~ degree * N), 
+             expression('25' *  ~ degree * N), 
+             expression('30' *  ~ degree * N ))
+  ) +
+  
+  ## indicate which shapes 
+  scale_shape_manual(values = c(3, 4, 8))+
+  scale_color_manual(values = c('red','dodgerblue','darkorange2')) +
+  
+  ## add the map downloaded above
+  geom_polygon(data = hawaiiMap, aes(x = long, y = lat, group = group), fill = 'gray47', color = 'gray37') +
+  coord_fixed(1) 
+
+  
+
+
+  ## now add the data points
+Pc +  geom_point(size=1.5) +
+     geom_text_repel(data = psdf, size=2.5, 
+                     box.padding = 0.5,
+                     min.segment.length = 0.2,
+                     segment.color = "black",
+                     segment.size = 0.25,
+                    aes(x = longitude2, y = latitude, label = factor(encounter.ID))) 
+
+  
+
+
+#dev.off() ## so you don't overwrite the map png it later
+```
+
+

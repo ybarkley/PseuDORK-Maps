@@ -28,7 +28,7 @@ output: html_notebook
 
 
 # Load Packages
-```{r messages=F}
+```{r messages=F warning=F}
 library(geoR)
 library(fields)
 library(sp)
@@ -174,10 +174,13 @@ So for 'pel' detections, they are all going to be pink dots.
 ## Load and clean data
 ```{r}
 psdf = read.csv("C:\\Users\\Yvonne\\OneDrive\\PHD\\CHP1-FKW\\data\\Pseudorca_AcLocations.csv")
+levels(psdf$population)[3] <- 'Pelagic'
+levels(psdf$population)[2] <- 'NWHI'
 
 # ## recenter coordinates
 psdf$longitude2 = ifelse(psdf$longitude > 0, psdf$longitude*-1, psdf$longitude)
 
+psdf$population = with(psdf, factor(population, levels = rev(levels(population))))
 
 
 
@@ -192,7 +195,7 @@ psdf$longitude2 = ifelse(psdf$longitude > 0, psdf$longitude*-1, psdf$longitude)
 png(file = "C:\\Users\\Yvonne\\OneDrive\\PHD\\CHP1-FKW\\data\\PseudMap.png", width = 9, height = 5, res = 200, units = "in", bg="transparent")
 
 
-L = ggplot() +  ## this just makes the background white
+L = ggplot(data = psdf, aes(x = longitude2, y = latitude)) +  ## this just makes the background white
   theme_bw() +
   ## remove the legend title, x and y labels, and gridlines
   theme(
@@ -207,6 +210,7 @@ L = ggplot() +  ## this just makes the background white
   legend.background = element_rect(fill = NA),
   panel.background = element_rect(fill = "transparent"),
   plot.background = element_rect(fill = "transparent")
+
   
   ) +
   
@@ -228,16 +232,23 @@ L = ggplot() +  ## this just makes the background white
   ) +
   
   ## indicate which shapes you want (do ?pch to see options)
-  scale_shape_manual(values = c(1,2,0,18))+
+  scale_shape_manual(values = c(3, 4, 8))+
   scale_color_manual(values = c('red','dodgerblue','darkorange2')) +
+  
   ## add the map downloaded above
-  geom_polygon(data = hawaiiMap, aes(x = long, y = lat, group = group), fill = 'black', color = 'black') +
+  geom_polygon(data = hawaiiMap, aes(x = long, y = lat, group = group), fill = 'darkgrey', color = 'black') +
   coord_fixed(1) 
   
+
+
   ## now add the data points
-L +  geom_point(data = psdf, aes(
-  x = longitude2, y = latitude, col = factor(population), size = 2.5)) +
-  guides(colour = guide_legend(override.aes = list(size=2))) 
+L +  geom_point(size=1) +
+     geom_text_repel(data = psdf, size=2.5, aes(x = longitude2, y = latitude, label = factor(encounter.ID))) 
+  #+
+     geom_text_repel(psdf, aes(label=psdf$tmp))#aes(color=factor(psdf$encounter.ID), hjust=0, vjust=0))  
+  
+  #geom_point(data = psdf, aes(x = longitude2, y = latitude))
+  #guides(colour = guide_legend(override.aes = list(size=2))) 
   
 
 
