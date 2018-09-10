@@ -55,7 +55,7 @@ psdf$population = with(psdf, factor(population, levels = rev(levels(population))
 ```
 
 ```{r tidy=TRUE}
-#png(file = "C:\\Users\\Yvonne\\OneDrive\\PHD\\CHP1-FKW\\data\\PseudMap.png", width = 9, height = 5, res = 200, units = "in", bg="transparent")
+png(file = "C:\\Users\\Yvonne\\OneDrive\\PHD\\CHP1-FKW\\data\\PseudorcaMap1.png", width = 9, height = 5, res = 300, units = "in", bg="transparent")
 
 
 Pc = ggplot(data = psdf, aes(x = longitude2, y = latitude)) +  
@@ -71,8 +71,8 @@ Pc = ggplot(data = psdf, aes(x = longitude2, y = latitude)) +
   legend.position = c(0.1,0.25),
   plot.margin = unit(c(1,1,1,1), "cm"),
   legend.background = element_rect(fill = NA),
-  panel.background = element_rect(fill = "transparent"),
-  plot.background = element_rect(fill = "transparent")
+  panel.background = element_rect(fill = "white"),
+  plot.background = element_rect(fill = "white")
 
   
   ) +
@@ -103,21 +103,25 @@ Pc = ggplot(data = psdf, aes(x = longitude2, y = latitude)) +
   coord_fixed(1) 
 
   
-
-
-  ## now add the data points
+ ## now add the data points
 Pc +  geom_point(size=1.5) +
-     geom_text_repel(data = psdf, size=2.5, 
-                     box.padding = 0.5,
-                     min.segment.length = 0.2,
+     geom_text_repel(data = psdf, size=2.5, direction = 'both',
+                     box.padding = 0.3,
+                     min.segment.length = 0,
                      segment.color = "black",
-                     segment.size = 0.25,
+                     segment.size = 0.3,
                     aes(x = longitude2, y = latitude, label = factor(encounter.ID))) 
 
-  
+  # geom_label_repel(data = psdf, size=2.5, direction = 'both',
+  #                    box.padding = 0.3,
+  #                    label.padding = 0.25,
+  #                    min.segment.length = 0,
+  #                    segment.color = "black",
+  #                    segment.size = 0.25,
+  #                   aes(x = longitude2, y = latitude, label = factor(encounter.ID))) 
 
 
-#dev.off() ## so you don't overwrite the map png it later
+dev.off() ## so you don't overwrite the map png it later
 ```
 
 
